@@ -1,3 +1,9 @@
 ===============================================================================
 Additional Notes
 ===============================================================================
+
+This was an interesting challenge! I was able to get the core functionality up and running pretty quickly but spent a bit too much time working on CSS to get it looking pretty! I had just enough time to begin working on a bonus goal. The goal I chose to partially implement was persistence between sessions. (I interpreted this as meaning between refreshing the page, closing the tab, navigating elsewhere, etc, but not when the browser itself is closed ).
+
+The root of my extra credit implementation was to use Local Storage to store the username, so that the user stays "logged in" as long as their browser isn't completely closed. I state that this is only partially implemented because this introduces a bug into the system where if the user manually deletes the local storage value they will be able to hit the api with messages containing no username. Of course the API doesn't store the message without a `from` field but I feel as if we shouldn't rely on the API for that. If I had more time I would mitigate this by throwing an error when the user attempts to send a message this way and potentially forcing a refresh to place them back on the login page.
+
+I also ran into a bit of trouble figuring out JSS. I wanted to conditionally apply the disabled style (in order to set the button grey) using it, but instead went with a single style prop based on the state values controlling validation.

@@ -1,54 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { Message } from '../../types/message';
-import Api from "../lib/api"
+import { createUseStyles } from "react-jss"
 
-interface IChatWindowProps { }
+interface IChatWindowProps { socket: any, socketConnected: boolean }
 
-const ChatWindow: React.FC<IChatWindowProps> = () => {
+const ChatWindow: React.FC<IChatWindowProps> = ({ socket, socketConnected }: IChatWindowProps) => {
   const [messageList, setMessageList] = useState<Array<Message>>([])
-  console.log('messageList: ', messageList);
 
-  const handleNewMessage = (messageData: any) => {
-    if (messageData.type === "message") {
-      console.log('Message from server ', messageData.data);
-      setMessageList(oldMessageList => [...oldMessageList, messageData.data])
-    }
-  }
+  const styles = useStyles()
+
   useEffect(() => {
-    // Create WebSocket connection.
-    const socket = Api.openMessageSocket()
-    console.log('socket: ', socket);
-
     // Listen for messages
-    socket.addEventListener('message', (event) => {
+    socket.addEventListener('message', (event: MessageEvent) => {
       const newMessage = JSON.parse(event.data)
       handleNewMessage(newMessage);
     });
-
   }, [])
+
+  const handleNewMessage = (messageData: any) => {
+    if (messageData.type === "message") {
+      setMessageList(oldMessageList => [...oldMessageList, messageData.data])
+    }
+  }
+
   return (
-    <div className='textarea' style={{
-      "height": "500px",
-      "border": "1px solid black",
-      "display": "flex",
-      "overflowY": "scroll"
-    }}>
+    !socketConnected ? (<h1>{"Disconnected from chat....please refresh"}</h1>) : <div className={styles.chatboxContainer}>
       <span
-        style={{ "width": "100%" }}>
+        className={styles.chatboxInner}>
         {messageList.map((msg) => {
           return (
-            <div style={{
-              "overflow": "auto"
-            }} key={msg.time}>
-              <div style={{ "float": "left", "paddingRight": "10px", "fontWeight": "bold" }}>{`${msg.from}:`}</div>
-              <div style={{ "float": "left" }}>
+            <div className={styles.messageContainer} key={msg.time}>
+              <div className={styles.messageFrom}>{`${msg.from}:`}</div>
+              <div className={styles.messageBody}>
                 {msg.body}
               </div>
-              <div style={{
-                "float": "right",
-                "color": "#aaa"
-              }}>
-                {new Date(msg.time).toLocaleString()}
+              <div className={styles.messageTime}>
+                {new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
               <br></br>
             </div>
@@ -59,5 +46,30 @@ const ChatWindow: React.FC<IChatWindowProps> = () => {
     </div>
   );
 };
+
+const useStyles = createUseStyles({
+  chatboxContainer: {
+    "display": "flex",
+    "overflowY": "scroll",
+    "width": "100%"
+  },
+  chatboxInner: {
+    "width": "100%"
+  },
+  messageContainer: {
+    "overflow": "auto"
+  },
+  messageFrom: {
+    "float": "left", "paddingRight": "10px", "fontWeight": "bold"
+  },
+  messageBody: {
+    "float": "left"
+  },
+  messageTime: {
+    "float": "right",
+    "color": "#737171"
+  }
+})
+
 
 export default ChatWindow;

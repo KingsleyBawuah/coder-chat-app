@@ -1,60 +1,75 @@
-import React, { ChangeEvent, FormEvent, useState, useEffect } from 'react';
-import { navigate } from 'hookrouter';
+import React, { ChangeEvent, useState } from 'react';
+
+const loginRegex = /^[a-zA-Z0-9_\-]*$/
+const LOGIN_ERR_MSG = "The username you have provided is not in the correct format. Please use a 3-20 character password consiting of only letters, numbers and the symbols _ or -"
+
+import { createUseStyles } from "react-jss"
 
 interface ILoginProps { }
 
 const Login: React.FC<ILoginProps> = () => {
   const [loginValid, setLoginValid] = useState(true)
-  const [loginErrMsg, setLoginErrMsg] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [username, setUsername] = useState("")
-
-  useEffect(() => {
-    //Handle someone that is already logged in.
-    console.log('localStorage: ', localStorage["username"]);
-    if (localStorage["username"] !== undefined) {
-      navigate("/chat")
-    }
-  }, [])
+  const styles = useStyles()
 
   //Save login to local state and retrieve it on load of component.
-  const handleLoginSubmit = (event: FormEvent) => {
-    console.log('event: ', event);
+  const handleLoginSubmit = (): void => {
+    setLoginValid(verifyUsername(username))
     if (loginValid) {
-      console.log('loginValid: ', loginValid);
-      setIsSubmitting(true)
       localStorage.setItem("username", username);
-      navigate("/chat")
     }
   }
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    //TODO: Verify username is within params.
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setUsername(event.target.value)
+    setLoginValid(verifyUsername(event.target.value))
   }
 
-
-  const verifyLogin = (): boolean => {
-
-    return false
-  }
+  const verifyUsername = (username: string): boolean => (username.length < 3 || username.length > 20) || !loginRegex.test(username) ? false : true
 
   return (
-    <div>
-      <div>
-        <h1>Coder Challange Chat Login</h1>
-        <form className="loginForm" onSubmit={handleLoginSubmit}>
-          <input type="text" onChange={handleInputChange} />
-          <span className="error"></span>
-          <div>
-            <button disabled={!loginValid}>
-              {"Login"}
-            </button>
-          </div>
-        </form>
-      </div>
+    <div className={styles.loginContainer}>
+      <h1>Welcome to Chat App</h1>
+      <form className="loginForm" onSubmit={handleLoginSubmit}>
+        <input name="username" placeholder={"Enter your name"} className={styles.usernameInput} type="text" onChange={handleInputChange} />
+        <div>
+          <button
+            className={styles.joinButton}
+            style={!loginValid ? {
+              "backgroundColor": "grey"
+            } : {}} disabled={!loginValid}>
+            {"Join"}
+          </button>
+        </div>
+        <br />
+        <span className={styles.usernameError}>{loginValid ? "" : LOGIN_ERR_MSG}</span>
+      </form>
     </div>
   );
 };
+
+
+const useStyles = createUseStyles({
+  loginContainer: {
+    "backgroundColor": "darkgray",
+    "margin": "auto",
+    "width": "50%",
+    "transform": "translateY(20rem)",
+    "padding": "25px"
+  },
+  usernameInput: {
+    "marginBottom": "10px",
+    "width": "75%",
+    "height": "54px",
+    "fontSize": "larger"
+  },
+  joinButton: {
+    "lineHeight": "0", "color": "white",
+    "width": "75%", "fontSize": "20px", "padding": "25px", "backgroundColor": "#040404", "display": "inline-block", "cursor": "pointer", "textAlign": "center"
+  },
+  usernameError: {
+    "color": "red"
+  }
+})
 
 export default Login;
